@@ -232,7 +232,7 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
             ? null
             : (details) => onSecondaryTapUp!(node, details),
         onLongPress: onLongPress == null ? null : () => onLongPress!(node),
-        onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
+        // onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
         child: Indent(
           indentation: indentation,
           node: node,

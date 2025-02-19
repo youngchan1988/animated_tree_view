@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:animated_tree_view/constants/constants.dart';
 import 'package:animated_tree_view/tree_diff/tree_diff_util.dart';
+import 'package:animated_tree_view/tree_view/widgets/animated_reorderable_list.dart';
 import 'package:flutter/material.dart';
 
 import '../tree_diff/tree_diff_change.dart';
@@ -736,8 +737,8 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
   static const _errorMsg =
       "Animated list state not found from GlobalKey<AnimatedListState>";
 
-  late final GlobalKey<AnimatedListState> _listKey =
-      GlobalKey<AnimatedListState>();
+  late final GlobalKey<AnimatedReorderableListViewState> _listKey =
+      GlobalKey<AnimatedReorderableListViewState>();
 
   final Animation<double>? _animation;
 
@@ -761,16 +762,17 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedList(
+    return AnimatedReorderableListView(
       key: _listKey,
       initialItemCount: _stateHelper.animatedListStateController.list.length,
-      controller: _scrollController,
+      scrollController: _scrollController,
       primary: widget.primary,
       physics: widget.physics,
-      padding: widget.padding,
+      // padding:  widget.padding,
       shrinkWrap: widget.shrinkWrap,
       itemBuilder: (context, index, animation) =>
           _insertedItemBuilder(context, index, _animation ?? animation),
+      onReorder: (int oldIndex, int newIndex) {},
     );
   }
 }
