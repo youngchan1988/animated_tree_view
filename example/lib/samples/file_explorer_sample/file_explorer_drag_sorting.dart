@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(title: 'File Explorer Sample'),
+      home: const MyHomePage(title: 'File Explorer Drag Sorting Sample'),
     );
   }
 }
@@ -46,6 +46,16 @@ class _MyHomePageState extends State<MyHomePage>
         child: TreeView.simpleTyped<Explorable, TreeNode<Explorable>>(
           tree: tree,
           showRootNode: true,
+          enableDragSorting: true,
+          onReorder: (oldNode, newNode) {
+            debugPrint(
+                "On reorder oldNode=${oldNode.data?.name}, newNode=${newNode.data?.name}");
+            if (!newNode.isLeaf) {
+              oldNode.parent?.remove(oldNode);
+              newNode.add(oldNode);
+            }
+          },
+          animationDuration: const Duration(milliseconds: 150),
           expansionBehavior: ExpansionBehavior.scrollToLastChild,
           expansionIndicatorBuilder: (context, node) {
             if (node.isRoot) {

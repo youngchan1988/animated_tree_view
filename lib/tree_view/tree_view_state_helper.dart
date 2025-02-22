@@ -11,10 +11,11 @@ import 'package:flutter/foundation.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 
 abstract class ListState<Tree> {
-  void insertItem(int index, {Duration duration = animationDuration});
+  void insertItem(int index);
 
-  void removeItem(int index, Tree item,
-      {Duration duration = animationDuration});
+  void insertAllItem(int index, int length);
+
+  void removeItem(int index, Tree item);
 }
 
 class TreeViewStateHelper<Data> {
@@ -209,16 +210,21 @@ class AnimatedListStateController<Data> {
   int indexOf(INode item) => _flatList.indexWhere(
       (e) => e.parent?.key == item.parent?.key && e.key == item.key);
 
-  void insert(int index, ITreeNode<Data> item) {
+  void _insertItem(int index, ITreeNode<Data> item) {
     _flatList.insert(index, item);
     _itemsMap[item.path] = item;
+  }
+
+  void insert(int index, ITreeNode<Data> item) {
+    _insertItem(index, item);
     _listState.insertItem(index);
   }
 
   void insertAll(int index, List<ITreeNode<Data>> items) {
     for (int i = 0; i < items.length; i++) {
-      insert(index + i, items[i]);
+      _insertItem(index + i, items[i]);
     }
+    _listState.insertAllItem(index, items.length);
   }
 
   ITreeNode<Data> removeAt(int index) {
