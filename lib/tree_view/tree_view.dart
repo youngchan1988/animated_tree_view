@@ -211,6 +211,8 @@ abstract base class _TreeView<Data, Tree extends ITreeNode<Data>>
   /// An optional animation for AnimatedList. If no animation is provided, AnimatedList falls back on its default.
   final Animation<double>? animation;
 
+  final Duration? animationDuration;
+
   const _TreeView({
     super.key,
     this.expansionBehavior = ExpansionBehavior.none,
@@ -230,6 +232,7 @@ abstract base class _TreeView<Data, Tree extends ITreeNode<Data>>
     this.onTreeReady,
     this.focusToNewNode = true,
     this.animation,
+    this.animationDuration,
   }) : this.indentation =
             indentation ?? const Indentation(style: IndentStyle.none);
 }
@@ -453,6 +456,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     super.onTreeReady,
     super.animation,
     super.focusToNewNode,
+    super.animationDuration,
   });
 
   /// The default implementation of [TreeView] that uses a [TreeNode] internally,
@@ -496,6 +500,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, TreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
       TreeView._(
         key: key,
@@ -520,6 +525,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         onTreeReady: onTreeReady,
         focusToNewNode: focusToNewNode,
         animation: animation,
+        animationDuration: animationDuration,
       );
 
   /// Use the typed constructor if you are extending the [TreeNode] instead of
@@ -565,6 +571,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
       TreeView._(
         key: key,
@@ -589,6 +596,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         onTreeReady: onTreeReady,
         focusToNewNode: focusToNewNode,
         animation: animation,
+        animationDuration: animationDuration,
       );
 
   /// The alternate implementation of [TreeView] uses an [IndexedNode] internally,
@@ -630,6 +638,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, IndexedTreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
       TreeView._(
         key: key,
@@ -654,6 +663,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         onTreeReady: onTreeReady,
         focusToNewNode: focusToNewNode,
         animation: animation,
+        animationDuration: animationDuration,
       );
 
   /// Use the typed constructor if you are extending the [IndexedTreeNode] instead
@@ -698,6 +708,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
           TreeView._(
             key: key,
@@ -722,6 +733,7 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
             onTreeReady: onTreeReady,
             focusToNewNode: focusToNewNode,
             animation: animation,
+            animationDuration: animationDuration,
           );
 
   @override
@@ -742,20 +754,27 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
   final Animation<double>? _animation;
 
   @override
-  void insertItem(int index, {Duration duration = animationDuration}) {
+  void insertItem(int index) {
     if (_listKey.currentState == null) throw Exception(_errorMsg);
-    _listKey.currentState!.insertItem(index, duration: duration);
+    _listKey.currentState!.insertItem(index,
+        duration: widget.animationDuration ?? animationDuration);
   }
 
   @override
-  void removeItem(int index, Tree item,
-      {Duration duration = animationDuration}) {
+  void insertAllItem(int index, int length) {
+    if (_listKey.currentState == null) throw Exception(_errorMsg);
+    _listKey.currentState!.insertAllItems(index, length,
+        duration: widget.animationDuration ?? animationDuration);
+  }
+
+  @override
+  void removeItem(int index, Tree item) {
     if (_listKey.currentState == null) throw Exception(_errorMsg);
     _listKey.currentState!.removeItem(
       index,
       (context, animation) =>
           _removedItemBuilder(context, item, _animation ?? animation),
-      duration: duration,
+      duration: widget.animationDuration ?? animationDuration,
     );
   }
 
@@ -818,6 +837,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     super.onTreeReady,
     super.focusToNewNode,
     super.animation,
+    super.animationDuration,
   }) : assert(
             expansionBehavior == ExpansionBehavior.none ||
                 scrollController != null,
@@ -872,6 +892,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, TreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
       SliverTreeView._(
         key: key,
@@ -888,6 +909,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
         onTreeReady: onTreeReady,
         focusToNewNode: focusToNewNode,
         animation: animation,
+        animationDuration: animationDuration,
       );
 
   /// Use the typed constructor if you are extending the [TreeNode] instead of
@@ -936,6 +958,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
           SliverTreeView._(
             key: key,
@@ -957,6 +980,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
             onTreeReady: onTreeReady,
             focusToNewNode: focusToNewNode,
             animation: animation,
+            animationDuration: animationDuration,
           );
 
   /// The alternate implementation of [SliverTreeView] uses an [IndexedNode]
@@ -1000,6 +1024,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, IndexedTreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
       SliverTreeView._(
         key: key,
@@ -1021,6 +1046,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
         onTreeReady: onTreeReady,
         focusToNewNode: focusToNewNode,
         animation: animation,
+        animationDuration: animationDuration,
       );
 
   /// Use the typed constructor if you are extending the [IndexedTreeNode] instead
@@ -1072,6 +1098,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     bool focusToNewNode = true,
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
+    Duration? animationDuration,
   }) =>
           SliverTreeView._(
             key: key,
@@ -1093,6 +1120,7 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
             onTreeReady: onTreeReady,
             focusToNewNode: focusToNewNode,
             animation: animation,
+            animationDuration: animationDuration,
           );
 }
 
@@ -1109,20 +1137,28 @@ class SliverTreeViewState<Data, Tree extends ITreeNode<Data>>
   final Animation<double>? _animation;
 
   @override
-  void insertItem(int index, {Duration duration = animationDuration}) {
+  void insertItem(int index) {
     if (_listKey.currentState == null) throw Exception(_errorMsg);
-    _listKey.currentState!.insertItem(index, duration: duration);
+    _listKey.currentState!.insertItem(index,
+        duration: widget.animationDuration ?? animationDuration);
   }
 
   @override
-  void removeItem(int index, Tree item,
-      {Duration duration = animationDuration}) {
+  void insertAllItem(int index, int length) {
+    if (_listKey.currentState == null) throw Exception(_errorMsg);
+    _listKey.currentState!.insertAllItems(index, length,
+        duration: widget.animationDuration ?? animationDuration);
+    ;
+  }
+
+  @override
+  void removeItem(int index, Tree item) {
     if (_listKey.currentState == null) throw Exception(_errorMsg);
     _listKey.currentState!.removeItem(
       index,
       (context, animation) =>
           _removedItemBuilder(context, item, _animation ?? animation),
-      duration: duration,
+      duration: widget.animationDuration ?? animationDuration,
     );
   }
 
