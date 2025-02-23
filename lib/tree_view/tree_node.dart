@@ -8,7 +8,7 @@ mixin ITreeNode<T> on IListenableNode implements ValueListenable<INode> {
   late final ValueNotifier<bool> expansionNotifier = ValueNotifier(false);
 
   /// ValueNotifier for node hover
-  late final ValueNotifier<bool> hoverNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> hoverNotifier = ValueNotifier(false);
 
   /// [ValueNotifier] for data [T] that can be listened for data changes;
   ValueNotifier<T?> get listenableData;
@@ -18,6 +18,10 @@ mixin ITreeNode<T> on IListenableNode implements ValueListenable<INode> {
 
   /// Shows whether the node is hovered or not
   bool get isHover => hoverNotifier.value;
+
+  set hovered(bool hovered) {
+    hoverNotifier.value = hovered;
+  }
 
   /// The data value of [T] wrapped in the [ITreeNode]
   T? get data => listenableData.value;

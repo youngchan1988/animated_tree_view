@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage>
         child: TreeView.simpleTyped<Explorable, TreeNode<Explorable>>(
           tree: tree,
           showRootNode: true,
-          enableDragSorting: true,
+          enableReorder: true,
           onReorder: (oldNode, newNode) {
             debugPrint(
                 "On reorder oldNode=${oldNode.data?.name}, newNode=${newNode.data?.name}");

@@ -13,3 +13,4 @@ export 'tree_view/tree_node.dart';
 export 'tree_view/tree_view.dart';
 export 'tree_view/widgets/expansion_indicator.dart';
 export 'tree_view/widgets/indent.dart';
+export 'files_tree_view/files_tree_view.dart';

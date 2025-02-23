@@ -35,6 +35,8 @@ class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   final globalKey = GlobalKey<ScaffoldState>();
 
+  final _dragKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage>
         child: TreeView.simpleTyped<Explorable, TreeNode<Explorable>>(
           tree: tree,
           showRootNode: true,
+          animationDuration: const Duration(milliseconds: 120),
           expansionBehavior: ExpansionBehavior.scrollToLastChild,
           expansionIndicatorBuilder: (context, node) {
             if (node.isRoot) {
@@ -63,6 +66,32 @@ class _MyHomePageState extends State<MyHomePage>
             );
           },
           indentation: const Indentation(),
+          enableDragDrop: true,
+          dragFeedBack: (node) => FractionalTranslation(
+            translation: const Offset(0.5, 0.5),
+            child: ClipRRect(
+              key: _dragKey,
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 200,
+                height: 48,
+                child: Card(
+                  color: Colors.blue,
+                  child: Center(
+                    child: Text(
+                      node.data?.name ?? "N/A",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          onDropWillAccept: (draggedNode, targetNode) => !draggedNode.isRoot,
+          onDropAccept: (draggedNode, targetNode) {
+            draggedNode.delete();
+            targetNode.add(draggedNode);
+          },
           builder: (context, node) => Padding(
             padding: const EdgeInsets.only(left: 16.0),
             child: ListTile(

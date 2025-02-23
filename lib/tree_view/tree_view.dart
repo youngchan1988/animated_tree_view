@@ -217,7 +217,7 @@ abstract base class _TreeView<Data, Tree extends ITreeNode<Data>>
 
   final Duration? animationDuration;
 
-  final bool enableDragSorting;
+  final bool enableReorder;
 
   /// {@macro flutter.widgets.reorderable_list.itemBuilder}
   // final IndexedWidgetBuilder itemBuilder;
@@ -236,6 +236,18 @@ abstract base class _TreeView<Data, Tree extends ITreeNode<Data>>
 
   /// {@macro flutter.widgets.reorderable_list.proxyDecorator}
   final ReorderItemProxyDecorator? reorderItemProxyDecorator;
+
+  /// Enable drag and drop for the [TreeView]. If [enableDragDrop] is set to true,
+  final bool enableDragDrop;
+
+  /// The feedback widget that will be displayed when the item is dragged.
+  final DropFeedback<Tree>? dragFeedBack;
+
+  /// Will be called when the item is dropped on another item.
+  final OnDropWillAccept<Tree>? onDropWillAccept;
+
+  /// Will be called when the item is dropped on another item and the drop is accepted.
+  final OnDropAccept<Tree>? onDropAccept;
 
   const _TreeView({
     super.key,
@@ -257,14 +269,18 @@ abstract base class _TreeView<Data, Tree extends ITreeNode<Data>>
     this.focusToNewNode = true,
     this.animation,
     this.animationDuration,
-    required this.enableDragSorting,
+    required this.enableReorder,
     this.onReorder,
     this.onReorderStart,
     this.onReorderEnd,
     this.reorderItemProxyDecorator,
-  })  : assert(!enableDragSorting || (enableDragSorting && onReorder != null)),
-        this.indentation =
-            indentation ?? const Indentation(style: IndentStyle.none);
+    this.enableDragDrop = false,
+    this.dragFeedBack,
+    this.onDropWillAccept,
+    this.onDropAccept,
+  })  : assert(!enableReorder || onReorder != null),
+        assert(!enableDragDrop || dragFeedBack != null),
+        indentation = indentation ?? const Indentation(style: IndentStyle.none);
 }
 
 mixin _TreeViewState<Data, Tree extends ITreeNode<Data>,
@@ -343,6 +359,10 @@ mixin _TreeViewState<Data, Tree extends ITreeNode<Data>,
       onItemSecondaryTapUp: widget.onItemSecondaryTapUp,
       onItemLongPress: widget.onItemLongPress,
       showRootNode: widget.showRootNode,
+      enableDragDrop: widget.enableDragDrop,
+      dragFeedBack: widget.dragFeedBack,
+      onDropWillAccept: widget.onDropWillAccept,
+      onDropAccept: widget.onDropAccept,
     );
   }
 
@@ -487,11 +507,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     super.animation,
     super.focusToNewNode,
     super.animationDuration,
-    super.enableDragSorting = false,
+    super.enableReorder = false,
     super.onReorder,
     super.onReorderStart,
     super.onReorderEnd,
     super.reorderItemProxyDecorator,
+    super.enableDragDrop,
+    super.dragFeedBack,
+    super.onDropWillAccept,
+    super.onDropAccept,
   });
 
   /// The default implementation of [TreeView] that uses a [TreeNode] internally,
@@ -536,11 +560,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, TreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<TreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<TreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<TreeNode<Data>>? onDropWillAccept,
+    OnDropAccept<TreeNode<Data>>? onDropAccept,
   }) =>
       TreeView._(
         key: key,
@@ -566,11 +594,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         focusToNewNode: focusToNewNode,
         animation: animation,
         animationDuration: animationDuration,
-        enableDragSorting: enableDragSorting,
+        enableReorder: enableReorder,
         onReorder: onReorder,
         onReorderStart: onReorderStart,
         onReorderEnd: onReorderEnd,
         reorderItemProxyDecorator: reorderItemProxyDecorator,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       );
 
   /// Use the typed constructor if you are extending the [TreeNode] instead of
@@ -617,11 +649,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<TreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<TreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<Tree>? onDropWillAccept,
+    OnDropAccept<Tree>? onDropAccept,
   }) =>
       TreeView._(
         key: key,
@@ -647,11 +683,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         focusToNewNode: focusToNewNode,
         animation: animation,
         animationDuration: animationDuration,
-        enableDragSorting: enableDragSorting,
+        enableReorder: enableReorder,
         onReorder: onReorder,
         onReorderStart: onReorderStart,
         onReorderEnd: onReorderEnd,
         reorderItemProxyDecorator: reorderItemProxyDecorator,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       );
 
   /// The alternate implementation of [TreeView] uses an [IndexedNode] internally,
@@ -694,11 +734,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, IndexedTreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<IndexedTreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<IndexedTreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<IndexedTreeNode<Data>>? onDropWillAccept,
+    OnDropAccept<IndexedTreeNode<Data>>? onDropAccept,
   }) =>
       TreeView._(
         key: key,
@@ -724,11 +768,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
         focusToNewNode: focusToNewNode,
         animation: animation,
         animationDuration: animationDuration,
-        enableDragSorting: enableDragSorting,
+        enableReorder: enableReorder,
         onReorder: onReorder,
         onReorderStart: onReorderStart,
         onReorderEnd: onReorderEnd,
         reorderItemProxyDecorator: reorderItemProxyDecorator,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       );
 
   /// Use the typed constructor if you are extending the [IndexedTreeNode] instead
@@ -774,11 +822,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<IndexedTreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<IndexedTreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<Tree>? onDropWillAccept,
+    OnDropAccept<Tree>? onDropAccept,
   }) =>
           TreeView._(
             key: key,
@@ -804,11 +856,15 @@ final class TreeView<Data, Tree extends ITreeNode<Data>>
             focusToNewNode: focusToNewNode,
             animation: animation,
             animationDuration: animationDuration,
-            enableDragSorting: enableDragSorting,
+            enableReorder: enableReorder,
             onReorder: onReorder,
             onReorderStart: onReorderStart,
             onReorderEnd: onReorderEnd,
             reorderItemProxyDecorator: reorderItemProxyDecorator,
+            enableDragDrop: enableDragDrop,
+            dragFeedBack: dragFeedBack,
+            onDropWillAccept: onDropWillAccept,
+            onDropAccept: onDropAccept,
           );
 
   @override
@@ -823,7 +879,7 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
   static const _errorMsg =
       "Animated list state not found from GlobalKey<AnimatedListState>";
 
-  late final GlobalKey<dynamic> _listKey = widget.enableDragSorting
+  late final GlobalKey<dynamic> _listKey = widget.enableReorder
       ? GlobalKey<AnimatedReorderableListViewState>()
       : GlobalKey<AnimatedListState>();
 
@@ -856,7 +912,7 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.enableDragSorting) {
+    if (widget.enableReorder) {
       return AnimatedReorderableListView(
         key: _listKey,
         initialItemCount: _stateHelper.animatedListStateController.list.length,
@@ -937,18 +993,22 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     super.focusToNewNode,
     super.animation,
     super.animationDuration,
-    super.enableDragSorting = false,
+    super.enableReorder = false,
     super.onReorder,
     super.onReorderStart,
     super.onReorderEnd,
     super.reorderItemProxyDecorator,
+    super.enableDragDrop = false,
+    super.dragFeedBack,
+    super.onDropWillAccept,
+    super.onDropAccept,
   })  : assert(
             expansionBehavior == ExpansionBehavior.none ||
                 scrollController != null,
             "\n\nTo apply an ExpansionBehaviour, please also provide an AutoScrollController as well.\n\n"
             "The same instance of the scroll controller needs to be applied to the SliverTreeView and the CustomScrollView holding the SliverTreeView.\n\n"
             "For more info see example/lib/samples/sliver_treeview/sliver_treeview_sample.dart\n\n"),
-        assert(!enableDragSorting || (enableDragSorting && onReorder != null));
+        assert(!enableReorder || (enableReorder && onReorder != null));
 
   @override
   State<StatefulWidget> createState() =>
@@ -998,11 +1058,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, TreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<TreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<TreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<TreeNode<Data>>? onDropWillAccept,
+    OnDropAccept<TreeNode<Data>>? onDropAccept,
   }) =>
       SliverTreeView._(
         key: key,
@@ -1020,11 +1084,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
         focusToNewNode: focusToNewNode,
         animation: animation,
         animationDuration: animationDuration,
-        enableDragSorting: enableDragSorting,
+        enableReorder: enableReorder,
         onReorder: onReorder,
         onReorderStart: onReorderStart,
         onReorderEnd: onReorderEnd,
         reorderItemProxyDecorator: reorderItemProxyDecorator,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       );
 
   /// Use the typed constructor if you are extending the [TreeNode] instead of
@@ -1074,11 +1142,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<TreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<TreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<Tree>? onDropWillAccept,
+    OnDropAccept<Tree>? onDropAccept,
   }) =>
           SliverTreeView._(
             key: key,
@@ -1101,11 +1173,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
             focusToNewNode: focusToNewNode,
             animation: animation,
             animationDuration: animationDuration,
-            enableDragSorting: enableDragSorting,
+            enableReorder: enableReorder,
             onReorder: onReorder,
             onReorderStart: onReorderStart,
             onReorderEnd: onReorderEnd,
             reorderItemProxyDecorator: reorderItemProxyDecorator,
+            enableDragDrop: enableDragDrop,
+            dragFeedBack: dragFeedBack,
+            onDropWillAccept: onDropWillAccept,
+            onDropAccept: onDropAccept,
           );
 
   /// The alternate implementation of [SliverTreeView] uses an [IndexedNode]
@@ -1150,11 +1226,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, IndexedTreeNode<Data>>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<IndexedTreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<IndexedTreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<IndexedTreeNode<Data>>? onDropWillAccept,
+    OnDropAccept<IndexedTreeNode<Data>>? onDropAccept,
   }) =>
       SliverTreeView._(
         key: key,
@@ -1177,11 +1257,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
         focusToNewNode: focusToNewNode,
         animation: animation,
         animationDuration: animationDuration,
-        enableDragSorting: enableDragSorting,
+        enableReorder: enableReorder,
         onReorder: onReorder,
         onReorderStart: onReorderStart,
         onReorderEnd: onReorderEnd,
         reorderItemProxyDecorator: reorderItemProxyDecorator,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       );
 
   /// Use the typed constructor if you are extending the [IndexedTreeNode] instead
@@ -1234,11 +1318,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
     TreeReadyCallback<Data, Tree>? onTreeReady,
     Animation<double>? animation,
     Duration? animationDuration,
-    bool enableDragSorting = false,
+    bool enableReorder = false,
     TreeOnReorder<IndexedTreeNode<Data>>? onReorder,
     ValueChanged<int>? onReorderStart,
     ValueChanged<int>? onReorderEnd,
     ReorderItemProxyDecorator? reorderItemProxyDecorator,
+    bool enableDragDrop = false,
+    DropFeedback<IndexedTreeNode<Data>>? dragFeedBack,
+    OnDropWillAccept<Tree>? onDropWillAccept,
+    OnDropAccept<Tree>? onDropAccept,
   }) =>
           SliverTreeView._(
             key: key,
@@ -1261,11 +1349,15 @@ final class SliverTreeView<Data, Tree extends ITreeNode<Data>>
             focusToNewNode: focusToNewNode,
             animation: animation,
             animationDuration: animationDuration,
-            enableDragSorting: enableDragSorting,
+            enableReorder: enableReorder,
             onReorder: onReorder,
             onReorderStart: onReorderStart,
             onReorderEnd: onReorderEnd,
             reorderItemProxyDecorator: reorderItemProxyDecorator,
+            enableDragDrop: enableDragDrop,
+            dragFeedBack: dragFeedBack,
+            onDropWillAccept: onDropWillAccept,
+            onDropAccept: onDropAccept,
           );
 }
 
@@ -1276,7 +1368,7 @@ class SliverTreeViewState<Data, Tree extends ITreeNode<Data>>
   static const _errorMsg =
       "Sliver Animated list state not found from GlobalKey<SliverAnimatedListState>";
 
-  late final GlobalKey<dynamic> _listKey = widget.enableDragSorting
+  late final GlobalKey<dynamic> _listKey = widget.enableReorder
       ? GlobalKey<SliverAnimatedReorderableListState>()
       : GlobalKey<SliverAnimatedListState>();
 
@@ -1309,7 +1401,7 @@ class SliverTreeViewState<Data, Tree extends ITreeNode<Data>>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.enableDragSorting) {
+    if (widget.enableReorder) {
       return SliverAnimatedReorderableList(
         key: _listKey,
         initialItemCount: _stateHelper.animatedListStateController.list.length,

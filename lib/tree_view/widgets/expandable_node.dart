@@ -1,6 +1,11 @@
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:animated_tree_view/tree_view/tree_view_state_helper.dart';
+import 'package:animated_tree_view/tree_view/widgets/multi_value_listenable_builder.dart';
 import 'package:flutter/material.dart';
+
+typedef DropFeedback<T> = Widget Function(T node);
+typedef OnDropWillAccept<T> = bool Function(T draggedNode, T targetNode);
+typedef OnDropAccept<T> = void Function(T draggedNode, T targetNode);
 
 class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     extends StatelessWidget {
@@ -21,6 +26,10 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
   final ValueSetter<Tree> onToggleExpansion;
   final bool showRootNode;
   final LastChildCacheManager lastChildCacheManager;
+  final bool enableDragDrop;
+  final DropFeedback<Tree>? dragFeedBack;
+  final OnDropWillAccept<Tree>? onDropWillAccept;
+  final OnDropAccept<Tree>? onDropAccept;
 
   static Widget insertedNode<Data, Tree extends ITreeNode<Data>>({
     required int index,
@@ -39,32 +48,46 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     required bool showRootNode,
     required Indentation indentation,
     required LastChildCacheManager lastChildCacheManager,
+    bool enableDragDrop = false,
+    DropFeedback<Tree>? dragFeedBack,
+    OnDropWillAccept<Tree>? onDropWillAccept,
+    OnDropAccept<Tree>? onDropAccept,
   }) {
-    return ValueListenableBuilder<INode>(
+    // return ValueListenableBuilder<INode>(
+    //   key: ValueKey(node.key + index.toString()),
+    //   valueListenable: node,
+    //   builder: (context, treeNode, _) {
+    return MultiValueListenableBuilder(
       key: ValueKey(node.key + index.toString()),
-      valueListenable: node,
-      builder: (context, treeNode, _) => ValueListenableBuilder(
-        valueListenable: (treeNode as Tree).listenableData,
-        builder: (context, data, _) => ExpandableNodeItem<Data, Tree>(
-          builder: builder,
-          scrollController: scrollController,
-          node: node,
-          index: index,
-          animation: animation,
-          indentation: indentation,
-          expansionIndicatorBuilder: expansionIndicator,
-          onToggleExpansion: onToggleExpansion,
-          onItemTap: onItemTap,
-          onItemDoubleTap: onItemDoubleTap,
-          onItemSecondaryTap: onItemSecondaryTap,
-          onItemSecondaryTapDown: onItemSecondaryTapDown,
-          onItemSecondaryTapUp: onItemSecondaryTapUp,
-          onItemLongPress: onItemLongPress,
-          showRootNode: showRootNode,
-          lastChildCacheManager: lastChildCacheManager,
-        ),
+      valueListenables: [
+        node.listenableData,
+        node.hoverNotifier,
+      ],
+      builder: (context, data, _) => ExpandableNodeItem<Data, Tree>(
+        builder: builder,
+        scrollController: scrollController,
+        node: node,
+        index: index,
+        animation: animation,
+        indentation: indentation,
+        expansionIndicatorBuilder: expansionIndicator,
+        onToggleExpansion: onToggleExpansion,
+        onItemTap: onItemTap,
+        onItemDoubleTap: onItemDoubleTap,
+        onItemSecondaryTap: onItemSecondaryTap,
+        onItemSecondaryTapDown: onItemSecondaryTapDown,
+        onItemSecondaryTapUp: onItemSecondaryTapUp,
+        onItemLongPress: onItemLongPress,
+        showRootNode: showRootNode,
+        lastChildCacheManager: lastChildCacheManager,
+        enableDragDrop: enableDragDrop,
+        dragFeedBack: dragFeedBack,
+        onDropWillAccept: onDropWillAccept,
+        onDropAccept: onDropAccept,
       ),
     );
+    //   },
+    // );
   }
 
   static Widget removedNode<Data, Tree extends ITreeNode<Data>>({
@@ -124,46 +147,50 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     required this.showRootNode,
     required this.indentation,
     required this.lastChildCacheManager,
+    this.enableDragDrop = false,
+    this.dragFeedBack,
+    this.onDropWillAccept,
+    this.onDropAccept,
   });
 
   @override
   Widget build(BuildContext context) {
-    final itemContainer = StatefulBuilder(builder: (context, setter) {
-      return ExpandableNodeContainer<Tree>(
-          key: ValueKey("container#$key"),
-          animation: animation,
-          node: node,
-          child: builder(context, node),
-          indentation: indentation,
-          minLevelToIndent: showRootNode ? 0 : 1,
-          lastChildCacheManager: lastChildCacheManager,
-          expansionIndicator: node.childrenAsList.isEmpty
-              ? null
-              : expansionIndicatorBuilder?.call(context, node),
-          onTap: remove
-              ? null
-              : (dynamic item) {
-                  onToggleExpansion(item);
-                  if (onItemTap != null) onItemTap!(item);
-                },
-          onDoubleTap: remove ? null : (item) => onItemDoubleTap?.call(item),
-          onSecondaryTapUp: remove
-              ? null
-              : (item, details) => onItemSecondaryTapUp?.call(item, details),
-          onSecondaryTapDown: remove
-              ? null
-              : (item, details) => onItemSecondaryTapDown?.call(item, details),
-          onSecondaryTap:
-              remove ? null : (item) => onItemSecondaryTap?.call(item),
-          onLongPress: remove ? null : (item) => onItemLongPress?.call(item),
-          onHover: remove
-              ? null
-              : (item, hovered) {
-                  setter(() {
-                    node.hoverNotifier.value = hovered;
-                  });
-                });
-    });
+    final itemContainer = ExpandableNodeContainer<Tree>(
+      key: ValueKey("container#$key"),
+      animation: animation,
+      node: node,
+      indentation: indentation,
+      minLevelToIndent: showRootNode ? 0 : 1,
+      lastChildCacheManager: lastChildCacheManager,
+      expansionIndicator: node.childrenAsList.isEmpty
+          ? null
+          : expansionIndicatorBuilder?.call(context, node),
+      onTap: remove
+          ? null
+          : (dynamic item) {
+              onToggleExpansion(item);
+              if (onItemTap != null) onItemTap!(item);
+            },
+      onDoubleTap: remove ? null : (item) => onItemDoubleTap?.call(item),
+      onSecondaryTapUp: remove
+          ? null
+          : (item, details) => onItemSecondaryTapUp?.call(item, details),
+      onSecondaryTapDown: remove
+          ? null
+          : (item, details) => onItemSecondaryTapDown?.call(item, details),
+      onSecondaryTap: remove ? null : (item) => onItemSecondaryTap?.call(item),
+      onLongPress: remove ? null : (item) => onItemLongPress?.call(item),
+      onHover: remove
+          ? null
+          : (item, hovered) {
+              node.hovered = hovered;
+            },
+      enableDragDrop: enableDragDrop,
+      dragFeedBack: dragFeedBack,
+      onDropWillAccept: onDropWillAccept,
+      onDropAccept: onDropAccept,
+      child: builder(context, node),
+    );
 
     if (index == null || remove) return itemContainer;
 
@@ -191,6 +218,10 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
   final Widget child;
   final int minLevelToIndent;
   final LastChildCacheManager lastChildCacheManager;
+  final bool enableDragDrop;
+  final DropFeedback<Tree>? dragFeedBack;
+  final OnDropWillAccept<Tree>? onDropWillAccept;
+  final OnDropAccept<Tree>? onDropAccept;
 
   const ExpandableNodeContainer({
     super.key,
@@ -208,11 +239,15 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
     required this.minLevelToIndent,
     required this.lastChildCacheManager,
     this.expansionIndicator,
-  });
+    this.enableDragDrop = false,
+    this.dragFeedBack,
+    this.onDropWillAccept,
+    this.onDropAccept,
+  }) : assert(!enableDragDrop || dragFeedBack != null);
 
   @override
   Widget build(BuildContext context) {
-    return SizeTransition(
+    final itemChild = SizeTransition(
       axis: Axis.vertical,
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
       child: InkWell(
@@ -231,8 +266,10 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
         onSecondaryTapUp: onSecondaryTapUp == null
             ? null
             : (details) => onSecondaryTapUp!(node, details),
-        onLongPress: onLongPress == null ? null : () => onLongPress!(node),
-        // onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
+        onLongPress: enableDragDrop || onLongPress == null
+            ? null
+            : () => onLongPress!(node),
+        onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
         child: Indent(
           indentation: indentation,
           node: node,
@@ -246,6 +283,45 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
                 ),
         ),
       ),
+    );
+    if (!enableDragDrop) {
+      return itemChild;
+    }
+    if (node.isLeaf) {
+      return LongPressDraggable<Tree>(
+        data: node,
+        feedback: dragFeedBack?.call(node) ?? itemChild,
+        child: itemChild,
+      );
+    }
+    return DragTarget<Tree>(
+      onWillAcceptWithDetails: (details) =>
+          details.data.parent != node && details.data != node
+              ? onDropWillAccept?.call(details.data, node) ?? false
+              : false,
+      onAcceptWithDetails: (draggedNodeDetails) {
+        // 将 draggedNode 添加到当前节点的 children 中
+        onDropAccept?.call(draggedNodeDetails.data, node);
+      },
+      builder: (context, candidateData, rejectedData) {
+        Color willAcceptColor = Colors.transparent;
+        if (candidateData.isNotEmpty) {
+          willAcceptColor = Theme.of(context).colorScheme.primary;
+        } else if (rejectedData.isNotEmpty) {
+          willAcceptColor = Theme.of(context).colorScheme.error;
+        }
+
+        return LongPressDraggable<Tree>(
+          data: node,
+          feedback: dragFeedBack?.call(node) ?? itemChild,
+          child: candidateData.isNotEmpty || rejectedData.isNotEmpty
+              ? Container(
+                  color: willAcceptColor,
+                  child: itemChild,
+                )
+              : itemChild,
+        );
+      },
     );
   }
 }
