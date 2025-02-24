@@ -98,6 +98,26 @@ class ListenableNode extends Node
     _notifyNodesAdded(NodeAddEvent(List.from(iterable)));
   }
 
+  /// Move a child [source] node to [this] node
+  void moveToThis(Node source) {
+    source.delete();
+    _notifyNodesRemoved(NodeRemoveEvent(List.from([source])));
+    Future.delayed(const Duration(milliseconds: 200), () {
+      add(source);
+    });
+  }
+
+  /// Move all the [sources] nodes to [this] node
+  void moveAllToThis(Iterable<Node> sources) {
+    for (final source in sources) {
+      source.delete();
+    }
+    _notifyNodesRemoved(NodeRemoveEvent(List.from(sources)));
+    Future.delayed(const Duration(milliseconds: 200), () {
+      addAll(sources);
+    });
+  }
+
   /// Remove a child [value] node from the [children]
   ///
   /// The [ValueListenable] and [removedNodes] listeners will also be notified

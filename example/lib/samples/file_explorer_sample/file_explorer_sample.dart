@@ -89,8 +89,7 @@ class _MyHomePageState extends State<MyHomePage>
           ),
           onDropWillAccept: (draggedNode, targetNode) => !draggedNode.isRoot,
           onDropAccept: (draggedNode, targetNode) {
-            draggedNode.delete();
-            targetNode.add(draggedNode);
+            targetNode.moveToThis(draggedNode);
           },
           builder: (context, node) => Padding(
             padding: const EdgeInsets.only(left: 16.0),

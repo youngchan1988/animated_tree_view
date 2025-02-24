@@ -60,6 +60,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     return MultiValueListenableBuilder(
       key: ValueKey(node.key + index.toString()),
       valueListenables: [
+        node,
         node.listenableData,
         node.hoverNotifier,
       ],
@@ -251,7 +252,6 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
       axis: Axis.vertical,
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
       child: InkWell(
-        // behavior: HitTestBehavior.translucent,
         focusNode: node.focusNode,
         onTap: () {
           node.focusNode.requestFocus();
@@ -306,9 +306,7 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
       builder: (context, candidateData, rejectedData) {
         Color willAcceptColor = Colors.transparent;
         if (candidateData.isNotEmpty) {
-          willAcceptColor = Theme.of(context).colorScheme.primary;
-        } else if (rejectedData.isNotEmpty) {
-          willAcceptColor = Theme.of(context).colorScheme.error;
+          willAcceptColor = Theme.of(context).colorScheme.primary.withAlpha(60);
         }
 
         return LongPressDraggable<Tree>(
