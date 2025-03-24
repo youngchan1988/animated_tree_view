@@ -130,6 +130,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
   @override
   Widget build(BuildContext context) {
     final itemContainer = StatefulBuilder(builder: (context, setter) {
+      debugPrint("Node item build: ${node.key}");
       return ExpandableNodeContainer<Tree>(
           key: ValueKey("container#$key"),
           animation: animation,
@@ -142,9 +143,11 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
               : expansionIndicatorBuilder?.call(context, node),
           onTap: remove
               ? null
-              : (dynamic item) {
+              : (Tree item) {
                   onToggleExpansion(item);
                   final selectionProvider = TreeSelectionProvider.of(context);
+                  selectionProvider.radioSelect(item.key);
+                  debugPrint("Node item onTap: ${node.key}");
                   if (onItemTap != null) onItemTap!(item);
                 },
           onDoubleTap: remove ? null : (item) => onItemDoubleTap?.call(item),
@@ -214,38 +217,45 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectionProvider = TreeSelectionProvider.of(context);
+    final theme = Theme.of(context);
     return SizeTransition(
       axis: Axis.vertical,
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-      child: InkWell(
-        // behavior: HitTestBehavior.translucent,
-        // focusNode: node.focusNode,
-        onTap: () {
-          // node.focusNode.requestFocus();
-          onTap?.call(node);
-        },
-        onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(node),
-        onSecondaryTap:
-            onSecondaryTap == null ? null : () => onSecondaryTap!(node),
-        onSecondaryTapDown: onSecondaryTapDown == null
-            ? null
-            : (details) => onSecondaryTapDown!(node, details),
-        onSecondaryTapUp: onSecondaryTapUp == null
-            ? null
-            : (details) => onSecondaryTapUp!(node, details),
-        onLongPress: onLongPress == null ? null : () => onLongPress!(node),
-        // onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
-        child: Indent(
-          indentation: indentation,
-          node: node,
-          minLevelToIndent: minLevelToIndent,
-          lastChildCacheManager: lastChildCacheManager,
-          child: expansionIndicator == null
-              ? child
-              : PositionedExpansionIndicator(
-                  expansionIndicator: expansionIndicator!,
-                  child: child,
-                ),
+      child: Ink(
+        color: selectionProvider.isNodeSelected(node.key)
+            ? theme.colorScheme.tertiary
+            : null,
+        child: InkWell(
+          // behavior: HitTestBehavior.translucent,
+          // focusNode: node.focusNode,
+          onTap: () {
+            // node.focusNode.requestFocus();
+            onTap?.call(node);
+          },
+          onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(node),
+          onSecondaryTap:
+              onSecondaryTap == null ? null : () => onSecondaryTap!(node),
+          onSecondaryTapDown: onSecondaryTapDown == null
+              ? null
+              : (details) => onSecondaryTapDown!(node, details),
+          onSecondaryTapUp: onSecondaryTapUp == null
+              ? null
+              : (details) => onSecondaryTapUp!(node, details),
+          onLongPress: onLongPress == null ? null : () => onLongPress!(node),
+          // onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
+          child: Indent(
+            indentation: indentation,
+            node: node,
+            minLevelToIndent: minLevelToIndent,
+            lastChildCacheManager: lastChildCacheManager,
+            child: expansionIndicator == null
+                ? child
+                : PositionedExpansionIndicator(
+                    expansionIndicator: expansionIndicator!,
+                    child: child,
+                  ),
+          ),
         ),
       ),
     );
