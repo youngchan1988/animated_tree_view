@@ -1,4 +1,5 @@
 import 'package:animated_tree_view/animated_tree_view.dart';
+import 'package:animated_tree_view/tree_view/provider/tree_selection_provider.dart';
 import 'package:animated_tree_view/tree_view/tree_view_state_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -133,7 +134,6 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
           key: ValueKey("container#$key"),
           animation: animation,
           node: node,
-          child: builder(context, node),
           indentation: indentation,
           minLevelToIndent: showRootNode ? 0 : 1,
           lastChildCacheManager: lastChildCacheManager,
@@ -144,6 +144,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
               ? null
               : (dynamic item) {
                   onToggleExpansion(item);
+                  final selectionProvider = TreeSelectionProvider.of(context);
                   if (onItemTap != null) onItemTap!(item);
                 },
           onDoubleTap: remove ? null : (item) => onItemDoubleTap?.call(item),
@@ -162,7 +163,8 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
                   setter(() {
                     node.hoverNotifier.value = hovered;
                   });
-                });
+                },
+          child: builder(context, node));
     });
 
     if (index == null || remove) return itemContainer;
@@ -217,9 +219,9 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
       child: InkWell(
         // behavior: HitTestBehavior.translucent,
-        focusNode: node.focusNode,
+        // focusNode: node.focusNode,
         onTap: () {
-          node.focusNode.requestFocus();
+          // node.focusNode.requestFocus();
           onTap?.call(node);
         },
         onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(node),

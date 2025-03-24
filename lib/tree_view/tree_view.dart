@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:animated_tree_view/constants/constants.dart';
 import 'package:animated_tree_view/tree_diff/tree_diff_util.dart';
+import 'package:animated_tree_view/tree_view/provider/tree_selection_provider.dart';
 import 'package:animated_tree_view/tree_view/widgets/animated_reorderable_list.dart';
 import 'package:flutter/material.dart';
 
@@ -762,17 +763,19 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedReorderableListView(
-      key: _listKey,
-      initialItemCount: _stateHelper.animatedListStateController.list.length,
-      scrollController: _scrollController,
-      primary: widget.primary,
-      physics: widget.physics,
-      // padding:  widget.padding,
-      shrinkWrap: widget.shrinkWrap,
-      itemBuilder: (context, index, animation) =>
-          _insertedItemBuilder(context, index, _animation ?? animation),
-      onReorder: (int oldIndex, int newIndex) {},
+    return TreeSelectionProvider(
+      child: AnimatedReorderableListView(
+        key: _listKey,
+        initialItemCount: _stateHelper.animatedListStateController.list.length,
+        scrollController: _scrollController,
+        primary: widget.primary,
+        physics: widget.physics,
+        // padding:  widget.padding,
+        shrinkWrap: widget.shrinkWrap,
+        itemBuilder: (context, index, animation) =>
+            _insertedItemBuilder(context, index, _animation ?? animation),
+        onReorder: (int oldIndex, int newIndex) {},
+      ),
     );
   }
 }
