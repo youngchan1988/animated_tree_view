@@ -35,13 +35,18 @@ class TreeSelectionProvider extends InheritedWidget {
       if (index < lastIndex) {
         for (var i = index; i <= lastIndex; i++) {
           final n = list[i];
-          _selectedNodes.add(n);
+          if (!_selectedNodes.contains(n)) {
+            _selectedNodes.add(n);
+          }
+
           n.select = true;
         }
       } else {
         for (var i = lastIndex; i <= index; i++) {
           final n = list[i];
-          _selectedNodes.add(n);
+          if (!_selectedNodes.contains(n)) {
+            _selectedNodes.add(n);
+          }
           n.select = true;
         }
       }
