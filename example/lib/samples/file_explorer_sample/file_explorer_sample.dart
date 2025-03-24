@@ -89,7 +89,8 @@ class _MyHomePageState extends State<MyHomePage>
               ),
             ),
           ),
-          onDropWillAccept: (draggedNode, targetNode) => true,
+          onDropWillAccept: (draggedNode, targetNode) =>
+              targetNode.data is Folder,
           onDropAccept: (draggedNode, targetNode) {
             targetNode.moveAllToThis(draggedNode);
           },

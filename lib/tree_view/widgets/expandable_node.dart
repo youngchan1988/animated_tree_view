@@ -327,24 +327,12 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
     if (!enableDragDrop) {
       return itemChild;
     }
-    if (node.isLeaf) {
-      List<Tree> draggedNode = [];
-      if (selectionProvider.selectedNodes.contains(node)) {
-        draggedNode =
-            selectionProvider.selectedNodes.map((e) => e as Tree).toList();
-      } else {
-        draggedNode = [node];
-      }
-      return LongPressDraggable<List<Tree>>(
-        data: draggedNode,
-        feedback: dragFeedBack?.call(draggedNode) ?? itemChild,
-        child: itemChild,
-      );
-    }
+
     return DragTarget<List<Tree>>(
       onWillAcceptWithDetails: (details) {
         // 判断 draggedNode 是否可以被接受
         if (details.data.contains(node)) {
+          debugPrint("draggedNode contains node");
           return false;
         }
         // find the minimum level of the draggedNode
@@ -352,6 +340,7 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
         var minLevelNode = details.data[0];
         for (var node in details.data) {
           if (node.isRoot) {
+            debugPrint("draggedNode is root");
             return false;
           }
           if (node.level < minLevelToIndent) {
@@ -360,11 +349,15 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
           }
         }
         if (minLevelNode.parent == node) {
+          debugPrint(
+              "draggedNode is parent of node: parent key= ${minLevelNode.parent?.key} and node key= ${node.key}");
           return false;
         }
+        debugPrint("draggedNode can be accepted");
         return onDropWillAccept?.call(details.data, node) ?? false;
       },
       onAcceptWithDetails: (details) {
+        debugPrint("onAcceptWithDetails");
         // 将 draggedNode 添加到当前节点的 children 中
         onDropAccept?.call(details.data, node);
       },
