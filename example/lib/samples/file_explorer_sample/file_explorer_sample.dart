@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage>
           },
           indentation: const Indentation(),
           enableDragDrop: true,
-          dragFeedBack: (node) => FractionalTranslation(
+          dragFeedBack: (nodes) => FractionalTranslation(
             translation: const Offset(0.5, 0.5),
             child: ClipRRect(
               key: _dragKey,
@@ -79,7 +79,9 @@ class _MyHomePageState extends State<MyHomePage>
                   color: Colors.blue,
                   child: Center(
                     child: Text(
-                      node.data?.name ?? "N/A",
+                      nodes.length == 1
+                          ? nodes.first.data?.name ?? "N/A"
+                          : "${nodes.length} items",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -87,9 +89,9 @@ class _MyHomePageState extends State<MyHomePage>
               ),
             ),
           ),
-          onDropWillAccept: (draggedNode, targetNode) => !draggedNode.isRoot,
+          onDropWillAccept: (draggedNode, targetNode) => true,
           onDropAccept: (draggedNode, targetNode) {
-            targetNode.moveToThis(draggedNode);
+            targetNode.moveAllToThis(draggedNode);
           },
           builder: (context, node) => Padding(
             padding: const EdgeInsets.only(left: 16.0),

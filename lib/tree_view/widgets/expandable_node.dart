@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 
 import '../providers/tree_selection_provider.dart';
 
-typedef DropFeedback<T> = Widget Function(T node);
-typedef OnDropWillAccept<T> = bool Function(T draggedNode, T targetNode);
-typedef OnDropAccept<T> = void Function(T draggedNode, T targetNode);
+typedef DropFeedback<T> = Widget Function(List<T> node);
+typedef OnDropWillAccept<T> = bool Function(List<T> draggedNode, T targetNode);
+typedef OnDropAccept<T> = void Function(List<T> draggedNode, T targetNode);
 
 class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     extends StatelessWidget {
@@ -328,30 +328,61 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
       return itemChild;
     }
     if (node.isLeaf) {
-      return LongPressDraggable<Tree>(
-        data: node,
-        feedback: dragFeedBack?.call(node) ?? itemChild,
+      List<Tree> draggedNode = [];
+      if (selectionProvider.selectedNodes.contains(node)) {
+        draggedNode =
+            selectionProvider.selectedNodes.map((e) => e as Tree).toList();
+      } else {
+        draggedNode = [node];
+      }
+      return LongPressDraggable<List<Tree>>(
+        data: draggedNode,
+        feedback: dragFeedBack?.call(draggedNode) ?? itemChild,
         child: itemChild,
       );
     }
-    return DragTarget<Tree>(
-      onWillAcceptWithDetails: (details) =>
-          details.data.parent != node && details.data != node
-              ? onDropWillAccept?.call(details.data, node) ?? false
-              : false,
-      onAcceptWithDetails: (draggedNodeDetails) {
+    return DragTarget<List<Tree>>(
+      onWillAcceptWithDetails: (details) {
+        // 判断 draggedNode 是否可以被接受
+        if (details.data.contains(node)) {
+          return false;
+        }
+        // find the minimum level of the draggedNode
+        var minLevelToIndent = details.data[0].level;
+        var minLevelNode = details.data[0];
+        for (var node in details.data) {
+          if (node.isRoot) {
+            return false;
+          }
+          if (node.level < minLevelToIndent) {
+            minLevelToIndent = node.level;
+            minLevelNode = node;
+          }
+        }
+        if (minLevelNode.parent == node) {
+          return false;
+        }
+        return onDropWillAccept?.call(details.data, node) ?? false;
+      },
+      onAcceptWithDetails: (details) {
         // 将 draggedNode 添加到当前节点的 children 中
-        onDropAccept?.call(draggedNodeDetails.data, node);
+        onDropAccept?.call(details.data, node);
       },
       builder: (context, candidateData, rejectedData) {
         Color willAcceptColor = Colors.transparent;
         if (candidateData.isNotEmpty) {
           willAcceptColor = Theme.of(context).colorScheme.primary.withAlpha(60);
         }
-
-        return LongPressDraggable<Tree>(
-          data: node,
-          feedback: dragFeedBack?.call(node) ?? itemChild,
+        List<Tree> draggedNode = [];
+        if (selectionProvider.selectedNodes.contains(node)) {
+          draggedNode =
+              selectionProvider.selectedNodes.map((e) => e as Tree).toList();
+        } else {
+          draggedNode = [node];
+        }
+        return LongPressDraggable<List<Tree>>(
+          data: draggedNode,
+          feedback: dragFeedBack?.call(draggedNode) ?? itemChild,
           child: candidateData.isNotEmpty || rejectedData.isNotEmpty
               ? Container(
                   color: willAcceptColor,

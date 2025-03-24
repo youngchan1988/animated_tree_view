@@ -3,82 +3,60 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class TreeSelectionProvider extends InheritedWidget {
-  final List<String> _selectedNodePaths = [];
+  final List<ITreeNode> _selectedNodes = [];
 
   TreeSelectionProvider({
     super.key,
     required super.child,
   });
 
-  /// Checks if a node with the given [nodeKey] is selected.
-  bool isNodeSelected(String nodeKey) {
-    return _selectedNodePaths.contains(nodeKey);
-  }
-
-  /// Toggles the selection state of a node with the given [nodeKey].
-  void toggleSelection(String nodeKey) {
-    if (_selectedNodePaths.contains(nodeKey)) {
-      _selectedNodePaths.remove(nodeKey);
-    } else {
-      _selectedNodePaths.add(nodeKey);
-    }
-  }
-
   void radioSelectNode(ITreeNode node) {
-    for (var p in _selectedNodePaths) {
-      final n = node.root.elementAt(p) as ITreeNode;
+    for (var n in _selectedNodes) {
       n.select = false;
     }
     clearSelection();
-    _selectedNodePaths.add(node.path);
+    _selectedNodes.add(node);
     node.select = true;
   }
 
   void checkSelectNode(ITreeNode node) {
-    if (_selectedNodePaths.contains(node.path)) {
-      _selectedNodePaths.remove(node.path);
+    if (_selectedNodes.contains(node)) {
+      _selectedNodes.remove(node);
     } else {
-      _selectedNodePaths.add(node.path);
+      _selectedNodes.add(node);
     }
     node.select = !node.isSelected;
   }
 
   void multipleSelectNode(ITreeNode node, int index, List<ITreeNode> list) {
-    if (_selectedNodePaths.isNotEmpty) {
-      final lastNode =
-          node.root.elementAt(_selectedNodePaths.last) as ITreeNode;
+    if (_selectedNodes.isNotEmpty) {
+      final lastNode = _selectedNodes.last;
       final lastIndex = list.indexOf(lastNode);
       if (index < lastIndex) {
         for (var i = index; i <= lastIndex; i++) {
           final n = list[i];
-          _selectedNodePaths.add(n.path);
+          _selectedNodes.add(n);
           n.select = true;
         }
       } else {
         for (var i = lastIndex; i <= index; i++) {
           final n = list[i];
-          _selectedNodePaths.add(n.path);
+          _selectedNodes.add(n);
           n.select = true;
         }
       }
     } else {
-      _selectedNodePaths.add(node.path);
+      _selectedNodes.add(node);
       node.select = true;
     }
   }
 
-  /// Sets the selection state of multiple nodes with the given [nodeKeys].
-  void setSelections(List<String> nodeKeys) {
-    _selectedNodePaths.clear();
-    _selectedNodePaths.addAll(nodeKeys);
-  }
-
   /// Clears all selected nodes.
   void clearSelection() {
-    _selectedNodePaths.clear();
+    _selectedNodes.clear();
   }
 
-  List<String> get selectedNodePaths => _selectedNodePaths;
+  List<ITreeNode> get selectedNodes => _selectedNodes;
 
   static TreeSelectionProvider of(BuildContext context) {
     final TreeSelectionProvider? result =
@@ -89,6 +67,6 @@ class TreeSelectionProvider extends InheritedWidget {
 
   @override
   bool updateShouldNotify(TreeSelectionProvider old) {
-    return listEquals(old._selectedNodePaths, _selectedNodePaths);
+    return listEquals(old._selectedNodes, _selectedNodes);
   }
 }
