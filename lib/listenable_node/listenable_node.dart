@@ -102,7 +102,7 @@ class ListenableNode extends Node
   void moveToThis(Node source) {
     source.delete();
     _notifyNodesRemoved(NodeRemoveEvent(List.from([source])));
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       add(source);
     });
   }
@@ -113,7 +113,7 @@ class ListenableNode extends Node
       source.delete();
     }
     _notifyNodesRemoved(NodeRemoveEvent(List.from(sources)));
-    Future.delayed(const Duration(milliseconds: 200), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       addAll(sources);
     });
   }
