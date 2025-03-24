@@ -15,6 +15,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     extends StatelessWidget {
   final TreeNodeWidgetBuilder<Tree> builder;
   final AutoScrollController scrollController;
+  final AnimatedListStateController animatedListStateController;
   final Tree node;
   final Animation<double> animation;
   final Indentation indentation;
@@ -40,6 +41,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     required Tree node,
     required TreeNodeWidgetBuilder<Tree> builder,
     required AutoScrollController scrollController,
+    required AnimatedListStateController<Data> animatedListStateController,
     required Animation<double> animation,
     required ExpansionIndicatorBuilder<Data>? expansionIndicator,
     required ValueSetter<Tree>? onItemTap,
@@ -72,6 +74,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
       builder: (context, data, _) => ExpandableNodeItem<Data, Tree>(
         builder: builder,
         scrollController: scrollController,
+        animatedListStateController: animatedListStateController,
         node: node,
         index: index,
         animation: animation,
@@ -100,6 +103,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     required Tree node,
     required TreeNodeWidgetBuilder<Tree> builder,
     required AutoScrollController scrollController,
+    required AnimatedListStateController<Data> animatedListStateController,
     required Animation<double> animation,
     required ExpansionIndicatorBuilder<Data>? expansionIndicator,
     required ValueSetter<Tree>? onItemTap,
@@ -117,6 +121,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
       key: ValueKey(node.key),
       builder: builder,
       scrollController: scrollController,
+      animatedListStateController: animatedListStateController,
       node: node,
       remove: true,
       animation: animation,
@@ -138,6 +143,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
     super.key,
     required this.builder,
     required this.scrollController,
+    required this.animatedListStateController,
     required this.node,
     required this.animation,
     required this.onToggleExpansion,
@@ -188,8 +194,11 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
                 }
               }
 
-              if (isCtrlOrCmdPressed) {
-                item.select = true;
+              if (isShiftPressed) {
+                selectionProvider.multipleSelectNode(
+                    node, index ?? 0, animatedListStateController.list);
+              } else if (isCtrlOrCmdPressed) {
+                selectionProvider.checkSelectNode(item);
               } else {
                 onToggleExpansion(item);
                 selectionProvider.radioSelectNode(item);

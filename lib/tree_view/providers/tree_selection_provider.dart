@@ -34,6 +34,39 @@ class TreeSelectionProvider extends InheritedWidget {
     node.select = true;
   }
 
+  void checkSelectNode(ITreeNode node) {
+    if (_selectedNodePaths.contains(node.path)) {
+      _selectedNodePaths.remove(node.path);
+    } else {
+      _selectedNodePaths.add(node.path);
+    }
+    node.select = !node.isSelected;
+  }
+
+  void multipleSelectNode(ITreeNode node, int index, List<ITreeNode> list) {
+    if (_selectedNodePaths.isNotEmpty) {
+      final lastNode =
+          node.root.elementAt(_selectedNodePaths.last) as ITreeNode;
+      final lastIndex = list.indexOf(lastNode);
+      if (index < lastIndex) {
+        for (var i = index; i <= lastIndex; i++) {
+          final n = list[i];
+          _selectedNodePaths.add(n.path);
+          n.select = true;
+        }
+      } else {
+        for (var i = lastIndex; i <= index; i++) {
+          final n = list[i];
+          _selectedNodePaths.add(n.path);
+          n.select = true;
+        }
+      }
+    } else {
+      _selectedNodePaths.add(node.path);
+      node.select = true;
+    }
+  }
+
   /// Sets the selection state of multiple nodes with the given [nodeKeys].
   void setSelections(List<String> nodeKeys) {
     _selectedNodePaths.clear();
