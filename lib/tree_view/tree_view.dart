@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:animated_tree_view/constants/constants.dart';
 import 'package:animated_tree_view/tree_diff/tree_diff_util.dart';
+import 'package:animated_tree_view/tree_view/providers/tree_selection_provider.dart';
 import 'package:animated_tree_view/tree_view/widgets/animated_reorderable_list.dart';
 import 'package:flutter/material.dart';
 
@@ -913,38 +914,43 @@ class TreeViewState<Data, Tree extends ITreeNode<Data>>
   @override
   Widget build(BuildContext context) {
     if (widget.enableReorder) {
-      return AnimatedReorderableListView(
+      return TreeSelectionProvider(
+        child: AnimatedReorderableListView(
+          key: _listKey,
+          initialItemCount:
+              _stateHelper.animatedListStateController.list.length,
+          scrollController: _scrollController,
+          primary: widget.primary,
+          physics: widget.physics,
+          padding: widget.padding,
+          shrinkWrap: widget.shrinkWrap,
+          itemBuilder: (context, index, animation) =>
+              _insertedItemBuilder(context, index, _animation ?? animation),
+          onReorder: (oldIndex, newIndex) {
+            final oldNode =
+                _stateHelper.animatedListStateController.list[oldIndex];
+            final newNode =
+                _stateHelper.animatedListStateController.list[newIndex];
+            widget.onReorder?.call(oldNode as Tree, newNode as Tree);
+          },
+          onReorderStart: widget.onReorderStart,
+          onReorderEnd: widget.onReorderEnd,
+          proxyDecorator: widget.reorderItemProxyDecorator,
+        ),
+      );
+    }
+    return TreeSelectionProvider(
+      child: AnimatedList(
         key: _listKey,
         initialItemCount: _stateHelper.animatedListStateController.list.length,
-        scrollController: _scrollController,
+        controller: _scrollController,
         primary: widget.primary,
         physics: widget.physics,
         padding: widget.padding,
         shrinkWrap: widget.shrinkWrap,
         itemBuilder: (context, index, animation) =>
             _insertedItemBuilder(context, index, _animation ?? animation),
-        onReorder: (oldIndex, newIndex) {
-          final oldNode =
-              _stateHelper.animatedListStateController.list[oldIndex];
-          final newNode =
-              _stateHelper.animatedListStateController.list[newIndex];
-          widget.onReorder?.call(oldNode as Tree, newNode as Tree);
-        },
-        onReorderStart: widget.onReorderStart,
-        onReorderEnd: widget.onReorderEnd,
-        proxyDecorator: widget.reorderItemProxyDecorator,
-      );
-    }
-    return AnimatedList(
-      key: _listKey,
-      initialItemCount: _stateHelper.animatedListStateController.list.length,
-      controller: _scrollController,
-      primary: widget.primary,
-      physics: widget.physics,
-      padding: widget.padding,
-      shrinkWrap: widget.shrinkWrap,
-      itemBuilder: (context, index, animation) =>
-          _insertedItemBuilder(context, index, _animation ?? animation),
+      ),
     );
   }
 }

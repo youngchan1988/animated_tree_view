@@ -1,7 +1,11 @@
 import 'package:animated_tree_view/animated_tree_view.dart';
+import 'package:animated_tree_view/support/my_platform.dart';
 import 'package:animated_tree_view/tree_view/tree_view_state_helper.dart';
 import 'package:animated_tree_view/tree_view/widgets/multi_value_listenable_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../providers/tree_selection_provider.dart';
 
 typedef DropFeedback<T> = Widget Function(T node);
 typedef OnDropWillAccept<T> = bool Function(T draggedNode, T targetNode);
@@ -63,6 +67,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
         node,
         node.listenableData,
         node.hoverNotifier,
+        node.selectedNotifier,
       ],
       builder: (context, data, _) => ExpandableNodeItem<Data, Tree>(
         builder: builder,
@@ -168,9 +173,28 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
           : expansionIndicatorBuilder?.call(context, node),
       onTap: remove
           ? null
-          : (dynamic item) {
-              onToggleExpansion(item);
-              if (onItemTap != null) onItemTap!(item);
+          : (item) {
+              final selectionProvider = TreeSelectionProvider.of(context);
+              final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+              var isCtrlOrCmdPressed = false;
+              if (isWeb) {
+                isCtrlOrCmdPressed = HardwareKeyboard.instance.isControlPressed;
+              } else {
+                if (isMacOs) {
+                  isCtrlOrCmdPressed = HardwareKeyboard.instance.isMetaPressed;
+                } else if (isLinux || isWindows || isFuchsia) {
+                  isCtrlOrCmdPressed =
+                      HardwareKeyboard.instance.isControlPressed;
+                }
+              }
+
+              if (isCtrlOrCmdPressed) {
+                item.select = true;
+              } else {
+                onToggleExpansion(item);
+                selectionProvider.radioSelectNode(item);
+                onItemTap?.call(item);
+              }
             },
       onDoubleTap: remove ? null : (item) => onItemDoubleTap?.call(item),
       onSecondaryTapUp: remove
@@ -184,7 +208,7 @@ class ExpandableNodeItem<Data, Tree extends ITreeNode<Data>>
       onHover: remove
           ? null
           : (item, hovered) {
-              node.hovered = hovered;
+              item.hovered = hovered;
             },
       enableDragDrop: enableDragDrop,
       dragFeedBack: dragFeedBack,
@@ -248,39 +272,46 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectionProvider = TreeSelectionProvider.of(context);
+    final theme = Theme.of(context);
     final itemChild = SizeTransition(
       axis: Axis.vertical,
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-      child: InkWell(
-        focusNode: node.focusNode,
-        onTap: () {
-          node.focusNode.requestFocus();
-          onTap?.call(node);
-        },
-        onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(node),
-        onSecondaryTap:
-            onSecondaryTap == null ? null : () => onSecondaryTap!(node),
-        onSecondaryTapDown: onSecondaryTapDown == null
-            ? null
-            : (details) => onSecondaryTapDown!(node, details),
-        onSecondaryTapUp: onSecondaryTapUp == null
-            ? null
-            : (details) => onSecondaryTapUp!(node, details),
-        onLongPress: enableDragDrop || onLongPress == null
-            ? null
-            : () => onLongPress!(node),
-        onHover: onHover == null ? null : (hovered) => onHover!(node, hovered),
-        child: Indent(
-          indentation: indentation,
-          node: node,
-          minLevelToIndent: minLevelToIndent,
-          lastChildCacheManager: lastChildCacheManager,
-          child: expansionIndicator == null
-              ? child
-              : PositionedExpansionIndicator(
-                  expansionIndicator: expansionIndicator!,
-                  child: child,
-                ),
+      child: Ink(
+        color:
+            node.isSelected ? theme.colorScheme.primary.withAlpha(180) : null,
+        child: InkWell(
+          // focusNode: node.focusNode,
+          onTap: () {
+            // node.focusNode.requestFocus();
+            onTap?.call(node);
+          },
+          onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(node),
+          onSecondaryTap:
+              onSecondaryTap == null ? null : () => onSecondaryTap!(node),
+          onSecondaryTapDown: onSecondaryTapDown == null
+              ? null
+              : (details) => onSecondaryTapDown!(node, details),
+          onSecondaryTapUp: onSecondaryTapUp == null
+              ? null
+              : (details) => onSecondaryTapUp!(node, details),
+          onLongPress: enableDragDrop || onLongPress == null
+              ? null
+              : () => onLongPress!(node),
+          onHover:
+              onHover == null ? null : (hovered) => onHover!(node, hovered),
+          child: Indent(
+            indentation: indentation,
+            node: node,
+            minLevelToIndent: minLevelToIndent,
+            lastChildCacheManager: lastChildCacheManager,
+            child: expansionIndicator == null
+                ? child
+                : PositionedExpansionIndicator(
+                    expansionIndicator: expansionIndicator!,
+                    child: child,
+                  ),
+          ),
         ),
       ),
     );
