@@ -155,6 +155,9 @@ class TreeViewStateHelper<Data> {
     for (final node in event.items) {
       if (!animatedListStateController.containsKey(node.path)) continue;
 
+      final parentIndex = animatedListStateController.list
+          .indexWhere((element) => element.key == node.parent?.key);
+
       //if item is in the root of the list, then remove the item
       if (animatedListStateController.list
           .any((item) => item.key == node.key)) {
@@ -170,6 +173,11 @@ class TreeViewStateHelper<Data> {
                   (element.path).startsWith(removedItem.path))
               .toList());
         }
+      }
+      if (parentIndex < 0) continue;
+      final parentNode = animatedListStateController.list[parentIndex];
+      if (parentNode.childrenAsList.isEmpty) {
+        parentNode.expansionNotifier.value = false;
       }
     }
   }

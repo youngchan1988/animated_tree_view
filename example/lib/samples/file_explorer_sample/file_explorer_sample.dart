@@ -214,8 +214,13 @@ final tree = TreeNode<Explorable>.root(data: Folder("/root"))
       ]),
     FolderNode(data: Folder("System"))
       ..addAll([
-        FolderNode(data: Folder("temp")),
-        FolderNode(data: Folder("apps"))
+        FileNode(
+          data: File("sys.exe", mimeType: "application/win32_exe"),
+        ),
+        FileNode(
+          data: File("config.exe", mimeType: "application/win32_exe"),
+        ),
+        FolderNode(data: Folder("temp"))
           ..addAll([
             FileNode(
               data: File("word.exe", mimeType: "application/win32_exe"),
@@ -227,11 +232,6 @@ final tree = TreeNode<Explorable>.root(data: Folder("/root"))
               data: File("excel.exe", mimeType: "application/win32_exe"),
             ),
           ]),
-        FileNode(
-          data: File("sys.exe", mimeType: "application/win32_exe"),
-        ),
-        FileNode(
-          data: File("config.exe", mimeType: "application/win32_exe"),
-        )
+        FolderNode(data: Folder("apps")),
       ]),
   ]);
