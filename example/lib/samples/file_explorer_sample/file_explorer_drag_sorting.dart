@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      themeMode: ThemeMode.dark,
       home: const MyHomePage(title: 'File Explorer Drag Sorting Sample'),
     );
   }

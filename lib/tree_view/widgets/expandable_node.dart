@@ -287,8 +287,11 @@ class ExpandableNodeContainer<Tree extends ITreeNode> extends StatelessWidget {
       axis: Axis.vertical,
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
       child: Ink(
-        color:
-            node.isSelected ? theme.colorScheme.primary.withAlpha(180) : null,
+        color: node.isSelected
+            ? theme.brightness == Brightness.light
+                ? Colors.black.withAlpha(20)
+                : Colors.white10
+            : null,
         child: InkWell(
           // focusNode: node.focusNode,
           onTap: () {

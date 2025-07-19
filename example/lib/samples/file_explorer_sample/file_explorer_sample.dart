@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      themeMode: ThemeMode.dark,
       home: const MyHomePage(title: 'File Explorer Sample'),
     );
   }
@@ -99,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage>
             child: ListTile(
               title: Text(
                 node.data?.name ?? "N/A",
-                style: TextStyle(color: node.isHover ? Colors.blue : null),
+                style: TextStyle(color: node.isSelected ? Colors.blue : null),
               ),
               subtitle: Text(node.data?.createdAt.toString() ?? "N/A"),
               leading: Padding(
